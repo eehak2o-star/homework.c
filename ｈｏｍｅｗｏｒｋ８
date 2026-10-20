@@ -1,0 +1,214 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+int matrix[50][50];
+
+typedef struct Node {
+    int u, v, w;
+    struct Node* next;
+} Node;
+
+Node* list[50];
+
+typedef struct {
+    int u, v, w;
+} Edge;
+
+Edge edges[600];
+int parent[50];
+
+void add_edge(int u, int v, int w) {
+    Node* p = malloc(sizeof(Node));
+    p->u = u;
+    p->v = v;
+    p->w = w;
+    p->next = list[u];
+    list[u] = p;
+
+    p = malloc(sizeof(Node));
+    p->u = v;
+    p->v = u;
+    p->w = w;
+    p->next = list[v];
+    list[v] = p;
+
+    matrix[u][v] = matrix[v][u] = w;
+}
+
+int find(int x) {
+    while (parent[x] != x)
+        x = parent[x];
+    return x;
+}
+
+int compare(const void* a, const void* b) {
+    return ((Edge*)a)->w - ((Edge*)b)->w;
+}
+
+void kruskal(int n, int m, int number) {
+    int i, count = 0, cost = 0;
+    Edge mst[49];
+
+    for (i = 0; i < 50; i++)
+        parent[i] = i;
+
+    qsort(edges, m, sizeof(Edge), compare);
+
+    clock_t start = clock();
+
+    for (i = 0; i < m && count < 49; i++) {
+        int a = find(edges[i].u);
+        int b = find(edges[i].v);
+
+        if (a != b) {
+            parent[a] = b;
+            mst[count++] = edges[i];
+            cost += edges[i].w;
+        }
+    }
+
+    clock_t end = clock();
+
+    printf("\nCase %d : %s Graph - Adjacency List - Kruskal\n",
+        number, m == 100 ? "Sparse" : "Dense");
+
+    for (i = 0; i < count; i++)
+        printf("%d - %d : %d\n",
+            mst[i].u, mst[i].v, mst[i].w);
+
+    printf("Vertices       : 50\n");
+    printf("Edges          : %d\n", m);
+    printf("MST Edges      : %d\n", count);
+    printf("MST Cost       : %d\n", cost);
+    printf("Memory         : %lu Bytes\n",
+        (unsigned long)(sizeof(list) + 2 * m * sizeof(Node)
+            + sizeof(edges) + sizeof(parent) + sizeof(mst)));
+    printf("Execution Time : %.3f ms\n",
+        1000.0 * (end - start) / CLOCKS_PER_SEC);
+}
+
+void prim(int n, int m, int number) {
+    int visited[50] = { 0 };
+    int min[50], from[50];
+    int i, j, count = 0, cost = 0;
+    Edge mst[49];
+
+    for (i = 0; i < n; i++) {
+        min[i] = 999999;
+        from[i] = -1;
+    }
+
+    min[0] = 0;
+
+    clock_t start = clock();
+
+    for (i = 0; i < n; i++) {
+        int u = -1;
+
+        for (j = 0; j < n; j++)
+            if (!visited[j] &&
+                (u == -1 || min[j] < min[u]))
+                u = j;
+
+        if (u == -1 || min[u] == 999999)
+            break;
+
+        visited[u] = 1;
+
+        if (from[u] != -1) {
+            mst[count].u = from[u];
+            mst[count].v = u;
+            mst[count].w = min[u];
+            cost += min[u];
+            count++;
+        }
+
+        for (j = 0; j < n; j++) {
+            if (matrix[u][j] && !visited[j] &&
+                matrix[u][j] < min[j]) {
+                min[j] = matrix[u][j];
+                from[j] = u;
+            }
+        }
+    }
+
+    clock_t end = clock();
+
+    printf("\nCase %d : %s Graph - Adjacency Matrix - Prim\n",
+        number, m == 100 ? "Sparse" : "Dense");
+
+    for (i = 0; i < count; i++)
+        printf("%d - %d : %d\n",
+            mst[i].u, mst[i].v, mst[i].w);
+
+    printf("Vertices       : 50\n");
+    printf("Edges          : %d\n", m);
+    printf("MST Edges      : %d\n", count);
+    printf("MST Cost       : %d\n", cost);
+    printf("Memory         : %lu Bytes\n",
+        (unsigned long)(sizeof(matrix) + sizeof(visited)
+            + sizeof(min) + sizeof(from) + sizeof(mst)));
+    printf("Execution Time : %.3f ms\n",
+        1000.0 * (end - start) / CLOCKS_PER_SEC);
+}
+
+void create_graph(int m) {
+    int i, u, v, w;
+
+    for (i = 0; i < 50; i++)
+        list[i] = NULL;
+
+    for (i = 1; i < 50; i++) {
+        u = i;
+        v = rand() % i;
+        w = rand() % 100 + 1;
+
+        edges[i - 1] = (Edge){ u, v, w };
+        add_edge(u, v, w);
+    }
+
+    for (i = 49; i < m; ) {
+        u = rand() % 50;
+        v = rand() % 50;
+
+        if (u != v && matrix[u][v] == 0) {
+            w = rand() % 100 + 1;
+            edges[i] = (Edge){ u, v, w };
+            add_edge(u, v, w);
+            i++;
+        }
+    }
+}
+
+void free_graph(void) {
+    int i;
+
+    for (i = 0; i < 50; i++) {
+        while (list[i] != NULL) {
+            Node* p = list[i];
+            list[i] = p->next;
+            free(p);
+        }
+    }
+}
+
+int main(void) {
+    srand((unsigned)time(NULL));
+
+    create_graph(100);
+    kruskal(50, 100, 1);
+    prim(50, 100, 3);
+    free_graph();
+
+    for (int i = 0; i < 50; i++)
+        for (int j = 0; j < 50; j++)
+            matrix[i][j] = 0;
+
+    create_graph(600);
+    kruskal(50, 600, 2);
+    prim(50, 600, 4);
+    free_graph();
+
+    return 0;
+}
