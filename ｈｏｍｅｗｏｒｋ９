@@ -1,0 +1,121 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+int graph[10][10];
+int dist[10][10];
+int next[10][10];
+
+void shortest(void) {
+    int i, j, k;
+
+    for (i = 0; i < 10; i++) {
+        for (j = 0; j < 10; j++) {
+            if (i == j) {
+                dist[i][j] = 0;
+                next[i][j] = j;
+            }
+            else if (graph[i][j] != 0) {
+                dist[i][j] = graph[i][j];
+                next[i][j] = j;
+            }
+            else {
+                dist[i][j] = 999999;
+                next[i][j] = -1;
+            }
+        }
+    }
+
+    for (k = 0; k < 10; k++) {
+        for (i = 0; i < 10; i++) {
+            for (j = 0; j < 10; j++) {
+                if (dist[i][k] + dist[k][j] < dist[i][j]) {
+                    dist[i][j] = dist[i][k] + dist[k][j];
+                    next[i][j] = next[i][k];
+                }
+            }
+        }
+    }
+}
+
+int main(void) {
+    int edges[20][3];
+    int i, j, k, u, v, w, count = 0;
+    int current, sum, valid = 1;
+
+    srand(time(NULL));
+
+    for (i = 0; i < 10; i++)
+        for (j = 0; j < 10; j++)
+            graph[i][j] = 0;
+
+    for (i = 1; i < 10; i++) {
+        u = i;
+        v = rand() % i;
+        w = rand() % 100 + 1;
+
+        graph[u][v] = graph[v][u] = w;
+        edges[count][0] = u;
+        edges[count][1] = v;
+        edges[count++][2] = w;
+    }
+
+    while (count < 20) {
+        u = rand() % 10;
+        v = rand() % 10;
+
+        if (u != v && graph[u][v] == 0) {
+            w = rand() % 100 + 1;
+
+            graph[u][v] = graph[v][u] = w;
+            edges[count][0] = u;
+            edges[count][1] = v;
+            edges[count++][2] = w;
+        }
+    }
+
+    printf("Graph Vertices : 10\n");
+    printf("Graph Edges    : 20\n\n");
+    printf("Edges and Weights\n");
+
+    for (i = 0; i < 20; i++)
+        printf("(%d, %d) Weight: %d\n",
+            edges[i][0], edges[i][1], edges[i][2]);
+
+    shortest();
+
+    printf("\nShortest Paths\n");
+
+    for (i = 0; i < 10; i++) {
+        for (j = i + 1; j < 10; j++) {
+            printf("%d -> %d Path: ", i, j);
+
+            current = i;
+            sum = 0;
+            printf("%d", current);
+
+            while (current != j) {
+                k = next[current][j];
+
+                if (k < 0 || graph[current][k] == 0) {
+                    valid = 0;
+                    break;
+                }
+
+                sum += graph[current][k];
+                current = k;
+                printf(" -> %d", current);
+            }
+
+            if (valid && sum == dist[i][j])
+                printf(" Distance: %d\n", sum);
+            else
+                printf(" Path verification failed\n");
+        }
+    }
+
+    printf("\nTotal vertex pairs : 45\n");
+
+    return 0;
+}
