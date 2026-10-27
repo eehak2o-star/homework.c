@@ -1,0 +1,302 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+typedef struct {
+    int key1;
+    int key2;
+    int index;
+} Data;
+
+typedef struct {
+    long long compare;
+    long long move;
+} Count;
+
+Data original[10000];
+Data data[10000];
+Data sortedData[10000];
+Data reverseData[10000];
+Data partialData[10000];
+
+Count selection(Data a[], int n) {
+    Count c = { 0, 0 };
+    int i, j, min;
+    Data temp;
+
+    for (i = 0; i < n - 1; i++) {
+        min = i;
+
+        for (j = i + 1; j < n; j++) {
+            c.compare++;
+            if (a[j].key1 < a[min].key1)
+                min = j;
+        }
+
+        if (min != i) {
+            temp = a[i]; c.move++;
+            a[i] = a[min]; c.move++;
+            a[min] = temp; c.move++;
+        }
+    }
+
+    return c;
+}
+
+Count bubble(Data a[], int n, int early) {
+    Count c = { 0, 0 };
+    int i, j, changed;
+    Data temp;
+
+    for (i = 0; i < n - 1; i++) {
+        changed = 0;
+
+        for (j = 0; j < n - 1 - i; j++) {
+            c.compare++;
+
+            if (a[j].key1 > a[j + 1].key1) {
+                temp = a[j]; c.move++;
+                a[j] = a[j + 1]; c.move++;
+                a[j + 1] = temp; c.move++;
+                changed = 1;
+            }
+        }
+
+        if (early && !changed)
+            break;
+    }
+
+    return c;
+}
+
+Count insertion(Data a[], int n, int stable) {
+    Count c = { 0, 0 };
+    int i, j;
+    Data current;
+
+    for (i = 1; i < n; i++) {
+        current = a[i];
+        c.move++;
+        j = i - 1;
+
+        while (j >= 0) {
+            c.compare++;
+
+            if (stable == 0 && a[j].key1 <= current.key1)
+                break;
+
+            if (stable == 1 && a[j].key1 < current.key1)
+                break;
+
+            a[j + 1] = a[j];
+            c.move++;
+            j--;
+        }
+
+        a[j + 1] = current;
+        c.move++;
+    }
+
+    return c;
+}
+
+void copy(Data a[], Data b[], int n) {
+    int i;
+
+    for (i = 0; i < n; i++)
+        a[i] = b[i];
+}
+
+void randomData(Data a[], int n) {
+    int i;
+
+    for (i = 0; i < n; i++) {
+        a[i].key1 = rand() % 1000001;
+        a[i].key2 = rand() % 1000001;
+        a[i].index = i;
+    }
+}
+
+int sorted(Data a[], int n) {
+    int i;
+
+    for (i = 1; i < n; i++)
+        if (a[i - 1].key1 > a[i].key1)
+            return 0;
+
+    return 1;
+}
+
+int stableResult(Data a[], int n) {
+    int i;
+
+    for (i = 1; i < n; i++)
+        if (a[i - 1].key1 == a[i].key1 &&
+            a[i - 1].index > a[i].index)
+            return 0;
+
+    return 1;
+}
+
+void printResult(char name[], Count c, int ok) {
+    printf("%s\n", name);
+    printf("Comparisons : %lld\n", c.compare);
+    printf("Movements   : %lld\n", c.move);
+    printf("Sorted      : %s\n\n", ok ? "Yes" : "No");
+}
+
+void testAll(Data source[], int n, char name[]) {
+    Count c;
+
+    printf("\n--- %s ---\n", name);
+
+    copy(data, source, n);
+    c = selection(data, n);
+    printResult("Selection Sort", c, sorted(data, n));
+
+    copy(data, source, n);
+    c = bubble(data, n, 0);
+    printResult("Bubble Sort", c, sorted(data, n));
+
+    copy(data, source, n);
+    c = bubble(data, n, 1);
+    printResult("Bubble Sort (Early Termination)", c, sorted(data, n));
+
+    copy(data, source, n);
+    c = insertion(data, n, 0);
+    printResult("Insertion Sort (>)", c, sorted(data, n));
+}
+
+int main() {
+    int i, t, j, k;
+    Data temp;
+    Count c;
+    long long compare[5] = { 0 };
+    long long move[5] = { 0 };
+    char* names[5] = {
+        "Selection Sort",
+        "Bubble Sort",
+        "Bubble Sort (Early)",
+        "Insertion Sort (>)",
+        "Insertion Sort (>=)"
+    };
+
+    srand((unsigned int)time(NULL));
+
+    printf("Data Count: 10000\n");
+    printf("Random Data Trials: 100\n");
+    printf("Running...\n");
+
+    for (t = 0; t < 100; t++) {
+        randomData(original, 10000);
+
+        copy(data, original, 10000);
+        c = selection(data, 10000);
+        compare[0] += c.compare;
+        move[0] += c.move;
+
+        copy(data, original, 10000);
+        c = bubble(data, 10000, 0);
+        compare[1] += c.compare;
+        move[1] += c.move;
+
+        copy(data, original, 10000);
+        c = bubble(data, 10000, 1);
+        compare[2] += c.compare;
+        move[2] += c.move;
+
+        copy(data, original, 10000);
+        c = insertion(data, 10000, 0);
+        compare[3] += c.compare;
+        move[3] += c.move;
+
+        copy(data, original, 10000);
+        c = insertion(data, 10000, 1);
+        compare[4] += c.compare;
+        move[4] += c.move;
+    }
+
+    printf("\n--- Random Data Results ---\n");
+
+    for (i = 0; i < 5; i++) {
+        printf("\n%s\n", names[i]);
+        printf("Total Comparisons   : %lld\n", compare[i]);
+        printf("Average Comparisons : %.2f\n", compare[i] / 100.0);
+        printf("Total Movements     : %lld\n", move[i]);
+        printf("Average Movements   : %.2f\n", move[i] / 100.0);
+    }
+
+    randomData(original, 10000);
+
+    copy(sortedData, original, 10000);
+    insertion(sortedData, 10000, 0);
+
+    for (i = 0; i < 10000; i++)
+        sortedData[i].index = i;
+
+    copy(reverseData, sortedData, 10000);
+
+    for (i = 0; i < 5000; i++) {
+        temp = reverseData[i];
+        reverseData[i] = reverseData[9999 - i];
+        reverseData[9999 - i] = temp;
+    }
+
+    for (i = 0; i < 10000; i++)
+        reverseData[i].index = i;
+
+    copy(partialData, sortedData, 10000);
+
+    for (i = 0; i < 1000; i++) {
+        j = rand() % 10000;
+        k = rand() % 10000;
+
+        temp = partialData[j];
+        partialData[j] = partialData[k];
+        partialData[k] = temp;
+    }
+
+    for (i = 0; i < 10000; i++)
+        partialData[i].index = i;
+
+    testAll(sortedData, 10000, "Sorted Data");
+    testAll(reverseData, 10000, "Reverse-Sorted Data");
+    testAll(partialData, 10000, "Partially Sorted Data");
+
+    {
+        Data sample[6] = {
+            {527, 100, 0},
+            {527, 200, 1},
+            {125, 300, 2},
+            {892, 400, 3},
+            {527, 500, 4},
+            {125, 600, 5}
+        };
+        Data small[6];
+
+        printf("\n--- Stability Verification ---\n");
+
+        copy(small, sample, 6);
+        selection(small, 6);
+        printf("Selection Sort: %s\n",
+            stableResult(small, 6) ? "Stable" : "Unstable");
+
+        copy(small, sample, 6);
+        bubble(small, 6, 1);
+        printf("Bubble Sort: %s\n",
+            stableResult(small, 6) ? "Stable" : "Unstable");
+
+        copy(small, sample, 6);
+        insertion(small, 6, 0);
+        printf("Insertion Sort (>): %s\n",
+            stableResult(small, 6) ? "Stable" : "Unstable");
+
+        copy(small, sample, 6);
+        insertion(small, 6, 1);
+        printf("Insertion Sort (>=): %s\n",
+            stableResult(small, 6) ? "Stable" : "Unstable");
+    }
+
+    return 0;
+}
