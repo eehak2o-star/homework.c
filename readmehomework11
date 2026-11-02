@@ -1,0 +1,39 @@
+코드 실행 결과
+Data Size : 1000
+Insertion Sort       : 256175 comparisons (OK)
+Shell Sort (Original): 14565 comparisons (OK)
+Shell Sort (Knuth)   : 13817 comparisons (OK)
+
+Data Size : 2000
+Insertion Sort       : 999064 comparisons (OK)
+Shell Sort (Original): 36777 comparisons (OK)
+Shell Sort (Knuth)   : 32613 comparisons (OK)
+
+Data Size : 4000
+Insertion Sort       : 3996724 comparisons (OK)
+Shell Sort (Original): 83973 comparisons (OK)
+Shell Sort (Knuth)   : 74861 comparisons (OK)
+
+Data Size : 8000
+Insertion Sort       : 16134840 comparisons (OK)
+Shell Sort (Original): 200563 comparisons (OK)
+Shell Sort (Knuth)   : 174762 comparisons (OK)
+
+Data Size : 16000
+Insertion Sort       : 64248743 comparisons (OK)
+Shell Sort (Original): 494755 comparisons (OK)
+Shell Sort (Knuth)   : 403905 comparisons (OK)
+
+Data Size : 20000
+Insertion Sort       : 99730237 comparisons (OK)
+Shell Sort (Original): 609829 comparisons (OK)
+Shell Sort (Knuth)   : 532603 comparisons (OK)
+
+위 결과를 바탕으로 작성한 README 
+
+데이터 크기가 1,000에서 20,000으로 증가하면서 삽입 정렬의 비교 횟수는 약 25만 회에서 9,973만 회로 급격히 증가하였다. 
+반면 쉘 정렬은 간격을 활용하여 떨어진 원소들을 먼저 정렬하므로 비교 횟수가 상대적으로 적었다. 
+특히 20,000개 기준 삽입 정렬은 약 9,973만 회, 기본 쉘 정렬은 약 61만 회로 큰 성능 차이를 보였다. 
+또한 Knuth 수열은 기본 간격보다 적은 비교 횟수를 기록했다. 
+이는 간격을 3h+1 규칙으로 구성하여 다양한 거리의 원소를 효율적으로 정렬하고, 마지막 간격 1에서 수행하는 정렬의 부담을 줄이기 때문이다. 
+따라서 간격 수열의 선택이 쉘 정렬의 성능에 영향을 미친다는 것을 확인하였다
