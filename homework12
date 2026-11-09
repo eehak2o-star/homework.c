@@ -1,0 +1,227 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+long long first_count = 0;
+long long random_count = 0;
+long long median_count = 0;
+
+void quick_first(int a[], int left, int right) {
+    if (left >= right)
+        return;
+
+    int pivot = a[left];
+    int i = left + 1;
+    int j = right;
+
+    while (i <= j) {
+        while (i <= right) {
+            first_count++;
+            if (a[i] > pivot)
+                break;
+            i++;
+        }
+
+        while (j > left) {
+            first_count++;
+            if (a[j] < pivot)
+                break;
+            j--;
+        }
+
+        if (i < j) {
+            int temp = a[i];
+            a[i] = a[j];
+            a[j] = temp;
+        }
+    }
+
+    a[left] = a[j];
+    a[j] = pivot;
+
+    quick_first(a, left, j - 1);
+    quick_first(a, j + 1, right);
+}
+
+void quick_random(int a[], int left, int right) {
+    if (left >= right)
+        return;
+
+    int r = left + rand() % (right - left + 1);
+
+    int temp = a[left];
+    a[left] = a[r];
+    a[r] = temp;
+
+    int pivot = a[left];
+    int i = left + 1;
+    int j = right;
+
+    while (i <= j) {
+        while (i <= right) {
+            random_count++;
+            if (a[i] > pivot)
+                break;
+            i++;
+        }
+
+        while (j > left) {
+            random_count++;
+            if (a[j] < pivot)
+                break;
+            j--;
+        }
+
+        if (i < j) {
+            temp = a[i];
+            a[i] = a[j];
+            a[j] = temp;
+        }
+    }
+
+    a[left] = a[j];
+    a[j] = pivot;
+
+    quick_random(a, left, j - 1);
+    quick_random(a, j + 1, right);
+}
+
+void quick_median(int a[], int left, int right) {
+    if (left >= right)
+        return;
+
+    int mid = (left + right) / 2;
+    int x = a[left];
+    int y = a[mid];
+    int z = a[right];
+    int pivot;
+
+    median_count++;
+    if (x < y) {
+        median_count++;
+        if (y < z)
+            pivot = y;
+        else {
+            median_count++;
+            if (x < z)
+                pivot = z;
+            else
+                pivot = x;
+        }
+    }
+    else {
+        median_count++;
+        if (x < z)
+            pivot = x;
+        else {
+            median_count++;
+            if (y < z)
+                pivot = z;
+            else
+                pivot = y;
+        }
+    }
+
+    int p = left;
+
+    if (a[mid] == pivot)
+        p = mid;
+    else if (a[right] == pivot)
+        p = right;
+
+    int temp = a[left];
+    a[left] = a[p];
+    a[p] = temp;
+
+    pivot = a[left];
+
+    int i = left + 1;
+    int j = right;
+
+    while (i <= j) {
+        while (i <= right) {
+            median_count++;
+            if (a[i] > pivot)
+                break;
+            i++;
+        }
+
+        while (j > left) {
+            median_count++;
+            if (a[j] < pivot)
+                break;
+            j--;
+        }
+
+        if (i < j) {
+            temp = a[i];
+            a[i] = a[j];
+            a[j] = temp;
+        }
+    }
+
+    a[left] = a[j];
+    a[j] = pivot;
+
+    quick_median(a, left, j - 1);
+    quick_median(a, j + 1, right);
+}
+
+int check(int a[], int n) {
+    for (int i = 1; i < n; i++) {
+        if (a[i - 1] > a[i])
+            return 0;
+    }
+    return 1;
+}
+
+int main() {
+    srand(time(NULL));
+
+    int sizes[] = {1000, 2000, 4000, 8000, 16000, 20000};
+
+    for (int k = 0; k < 6; k++) {
+        int n = sizes[k];
+
+        int *original = malloc(sizeof(int) * n);
+        int *a = malloc(sizeof(int) * n);
+        int *b = malloc(sizeof(int) * n);
+        int *c = malloc(sizeof(int) * n);
+
+        for (int i = 0; i < n; i++)
+            original[i] = rand() % 100001;
+
+        for (int i = 0; i < n; i++) {
+            a[i] = original[i];
+            b[i] = original[i];
+            c[i] = original[i];
+        }
+
+        first_count = 0;
+        random_count = 0;
+        median_count = 0;
+
+        quick_first(a, 0, n - 1);
+        quick_random(b, 0, n - 1);
+        quick_median(c, 0, n - 1);
+
+        printf("Data Size : %d\n", n);
+
+        printf("Quick Sort (First)    : %lld comparisons %s\n",
+            first_count, check(a, n) ? "(OK)" : "(ERROR)");
+
+        printf("Quick Sort (Random)   : %lld comparisons %s\n",
+            random_count, check(b, n) ? "(OK)" : "(ERROR)");
+
+        printf("Quick Sort (Median-3) : %lld comparisons %s\n\n",
+            median_count, check(c, n) ? "(OK)" : "(ERROR)");
+
+        free(original);
+        free(a);
+        free(b);
+        free(c);
+    }
+
+    return 0;
+}
