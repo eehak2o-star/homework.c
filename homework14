@@ -1,0 +1,281 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+long long comparisons;
+int maxDepth;
+
+typedef struct {
+    int largest, left, right, root, n;
+} HeapFrame;
+
+typedef struct {
+    int left, right, mid, depth;
+} MergeFrame;
+
+typedef struct {
+    int low, high, pivot, depth;
+} QuickFrame;
+
+void copyArray(int a[], int b[], int n) {
+    for (int i = 0; i < n; i++)
+        b[i] = a[i];
+}
+
+int checkSort(int a[], int n) {
+    for (int i = 1; i < n; i++) {
+        if (a[i - 1] > a[i])
+            return 0;
+    }
+    return 1;
+}
+
+void swap(int *a, int *b) {
+    int temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+void heapify(int a[], int n, int root) {
+    while (1) {
+        int largest = root;
+        int left = root * 2 + 1;
+        int right = root * 2 + 2;
+
+        if (left < n) {
+            comparisons++;
+            if (a[left] > a[largest])
+                largest = left;
+        }
+
+        if (right < n) {
+            comparisons++;
+            if (a[right] > a[largest])
+                largest = right;
+        }
+
+        if (largest == root)
+            break;
+
+        swap(&a[root], &a[largest]);
+        root = largest;
+    }
+}
+
+void heapSort(int a[], int n) {
+    for (int i = n / 2 - 1; i >= 0; i--)
+        heapify(a, n, i);
+
+    for (int i = n - 1; i > 0; i--) {
+        swap(&a[0], &a[i]);
+        heapify(a, i, 0);
+    }
+}
+
+void merge(int a[], int temp[], int left, int mid, int right) {
+    int i = left;
+    int j = mid + 1;
+    int k = left;
+
+    while (i <= mid && j <= right) {
+        comparisons++;
+
+        if (a[i] <= a[j])
+            temp[k++] = a[i++];
+        else
+            temp[k++] = a[j++];
+    }
+
+    while (i <= mid)
+        temp[k++] = a[i++];
+
+    while (j <= right)
+        temp[k++] = a[j++];
+
+    for (i = left; i <= right; i++)
+        a[i] = temp[i];
+}
+
+void mergeSort(int a[], int temp[], int left, int right, int depth) {
+    if (depth > maxDepth)
+        maxDepth = depth;
+
+    if (left >= right)
+        return;
+
+    int mid = left + (right - left) / 2;
+
+    mergeSort(a, temp, left, mid, depth + 1);
+    mergeSort(a, temp, mid + 1, right, depth + 1);
+
+    merge(a, temp, left, mid, right);
+}
+
+int randomPivot(int low, int high) {
+    return low + rand() % (high - low + 1);
+}
+
+int medianPivot(int a[], int low, int high) {
+    int mid = low + (high - low) / 2;
+
+    comparisons++;
+    if (a[low] > a[mid])
+        swap(&a[low], &a[mid]);
+
+    comparisons++;
+    if (a[low] > a[high])
+        swap(&a[low], &a[high]);
+
+    comparisons++;
+    if (a[mid] > a[high])
+        swap(&a[mid], &a[high]);
+
+    return mid;
+}
+
+int partition(int a[], int low, int high, int type) {
+    int pivotIndex;
+
+    if (type == 1)
+        pivotIndex = low;
+    else if (type == 2)
+        pivotIndex = randomPivot(low, high);
+    else
+        pivotIndex = medianPivot(a, low, high);
+
+    int pivot = a[pivotIndex];
+
+    swap(&a[pivotIndex], &a[high]);
+
+    int i = low - 1;
+
+    for (int j = low; j < high; j++) {
+        comparisons++;
+
+        if (a[j] <= pivot) {
+            i++;
+            swap(&a[i], &a[j]);
+        }
+    }
+
+    swap(&a[i + 1], &a[high]);
+
+    return i + 1;
+}
+
+void quickSort(int a[], int low, int high, int type, int depth) {
+    while (low < high) {
+        if (depth > maxDepth)
+            maxDepth = depth;
+
+        int p = partition(a, low, high, type);
+
+        if (p - low < high - p) {
+            quickSort(a, low, p - 1, type, depth + 1);
+            low = p + 1;
+        }
+        else {
+            quickSort(a, p + 1, high, type, depth + 1);
+            high = p - 1;
+        }
+    }
+}
+
+void runSort(char *name, int original[], int n, int type) {
+    int *a = malloc(sizeof(int) * n);
+    int *temp = NULL;
+
+    if (a == NULL) {
+        printf("Memory allocation failed\n");
+        exit(1);
+    }
+
+    copyArray(original, a, n);
+
+    if (type == 1) {
+        temp = malloc(sizeof(int) * n);
+
+        if (temp == NULL) {
+            free(a);
+            printf("Memory allocation failed\n");
+            exit(1);
+        }
+    }
+
+    comparisons = 0;
+    maxDepth = 0;
+
+    clock_t start = clock();
+
+    if (type == 0)
+        heapSort(a, n);
+    else if (type == 1)
+        mergeSort(a, temp, 0, n - 1, 1);
+    else
+        quickSort(a, 0, n - 1, type - 1, 1);
+
+    clock_t end = clock();
+
+    double elapsed = (double)(end - start) * 1000.0 / CLOCKS_PER_SEC;
+
+    size_t memory = 0;
+
+    if (type == 0)
+        memory = sizeof(HeapFrame);
+    else if (type == 1)
+        memory = sizeof(int) * n + sizeof(MergeFrame) * maxDepth;
+    else
+        memory = sizeof(QuickFrame) * maxDepth;
+
+    printf("%-17s %12lld %12.3f %15zu (%s)\n",
+           name,
+           comparisons,
+           elapsed,
+           memory,
+           checkSort(a, n) ? "OK" : "FAIL");
+
+    free(temp);
+    free(a);
+}
+
+int main() {
+    int sizes[] = {1000, 2000, 4000, 8000, 16000, 20000};
+    int count = sizeof(sizes) / sizeof(sizes[0]);
+
+    srand((unsigned int)time(NULL));
+
+    for (int s = 0; s < count; s++) {
+        int n = sizes[s];
+
+        int *original = malloc(sizeof(int) * n);
+
+        if (original == NULL) {
+            printf("Memory allocation failed\n");
+            return 1;
+        }
+
+        for (int i = 0; i < n; i++)
+            original[i] = rand();
+
+        printf("\nData Size : %d\n", n);
+
+        printf("%-17s %12s %12s %15s\n",
+               "Algorithm",
+               "Comparisons",
+               "Time(ms)",
+               "Memory(Bytes)");
+
+        printf("---------------------------------------------------------------\n");
+
+        runSort("Heap Sort", original, n, 0);
+        runSort("Merge Sort", original, n, 1);
+        runSort("Quick (First)", original, n, 2);
+        runSort("Quick (Random)", original, n, 3);
+        runSort("Quick (Median3)", original, n, 4);
+
+        free(original);
+    }
+
+    return 0;
+}
