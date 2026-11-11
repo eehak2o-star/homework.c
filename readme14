@@ -1,0 +1,67 @@
+코드의 실행결과는 다음과 같음
+
+Data Size : 1000
+Algorithm          Comparisons     Time(ms)   Memory(Bytes)
+---------------------------------------------------------------
+Heap Sort                16864        0.000              20 (OK)
+Merge Sort                8662        0.000            4176 (OK)
+Quick (First)            10030        0.000              96 (OK)
+Quick (Random)           11224        0.000              96 (OK)
+Quick (Median3)          10870        0.000              96 (OK)
+
+Data Size : 2000
+Algorithm          Comparisons     Time(ms)   Memory(Bytes)
+---------------------------------------------------------------
+Heap Sort                37742        0.000              20 (OK)
+Merge Sort               19404        1.000            8192 (OK)
+Quick (First)            26409        0.000              96 (OK)
+Quick (Random)           23161        0.000              96 (OK)
+Quick (Median3)          25251        0.000             112 (OK)
+
+Data Size : 4000
+Algorithm          Comparisons     Time(ms)   Memory(Bytes)
+---------------------------------------------------------------
+Heap Sort                83445        1.000              20 (OK)
+Merge Sort               42838        1.000           16208 (OK)
+Quick (First)            53355        0.000             128 (OK)
+Quick (Random)           54876        1.000             112 (OK)
+Quick (Median3)          55656        0.000             128 (OK)
+
+Data Size : 8000
+Algorithm          Comparisons     Time(ms)   Memory(Bytes)
+---------------------------------------------------------------
+Heap Sort               182877        2.000              20 (OK)
+Merge Sort               93625        1.000           32224 (OK)
+Quick (First)           120242        1.000             128 (OK)
+Quick (Random)          118444        2.000             128 (OK)
+Quick (Median3)         116948        1.000             160 (OK)
+
+Data Size : 16000
+Algorithm          Comparisons     Time(ms)   Memory(Bytes)
+---------------------------------------------------------------
+Heap Sort               397379        4.000              20 (OK)
+Merge Sort              203256        2.000           64240 (OK)
+Quick (First)           276717        2.000             144 (OK)
+Quick (Random)          245043        3.000             144 (OK)
+Quick (Median3)         254751        2.000             144 (OK)
+
+Data Size : 20000
+Algorithm          Comparisons     Time(ms)   Memory(Bytes)
+---------------------------------------------------------------
+Heap Sort               510801        5.000              20 (OK)
+Merge Sort              260729        4.000           80256 (OK)
+Quick (First)           320300        4.000             144 (OK)
+Quick (Random)          356240        3.000             144 (OK)
+Quick (Median3)         320606        3.000             160 (OK)
+
+위 실험결과를 바탕으로 한 readme를 작성하면
+
+# README - 정렬 알고리즘 성능 비교 및 분석
+
+힙 정렬은 최대 힙을 구성한 후 최댓값을 뒤로 이동시키는 방식으로, 비교 횟수는 1,000개에서 16,864회, 20,000개에서 510,801회로 증가했다. 
+병합 정렬은 데이터를 분할한 뒤 정렬된 배열을 병합하며, 비교 횟수가 각각 8,662회와 260,729회로 가장 적었다. 퀵 정렬은 피벗을 기준으로 배열을 분할하며, 
+평균적으로 빠르지만 피벗 선택에 따라 성능 차이가 발생했다. 실행시간은 20,000개 기준 힙 5ms, 병합 4ms, 퀵 정렬 3~4ms였다. 
+메모리는 힙 20B, 병합 80,256B, 퀵 144~160B로 측정됐다. 시간 복잡도는 세 알고리즘 모두 평균 O(n log n)이며, 퀵 정렬의 최악은 O(n²)이다.
+공간 복잡도는 힙 O(1), 병합 O(n), 퀵 O(log n)이다. 메모리는 보조 배열과 재귀 깊이별 구조체 크기를 기준으로 추정했다.
+
+ㅇ
